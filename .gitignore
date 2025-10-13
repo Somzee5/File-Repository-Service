@@ -1,0 +1,64 @@
+# === Maven / Build ===
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/
+*.log
+*.tmp
+*.bak
+
+# === IntelliJ IDEA ===
+.idea/
+*.iml
+out/
+*.ipr
+*.iws
+
+# === VS Code ===
+.vscode/
+
+# === Eclipse ===
+.classpath
+.project
+.settings/
+
+# === Java Specific ===
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# === Operating System Files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Environment Files ===
+.env
+*.env.local
+
+# === Uploaded Files / Local Storage ===
+# These are dynamically created at runtime
+storage/
+temp/
+
+# === Project Documentation (your local notes etc.) ===
+# ignore any personal or documentation folder in project root
+/Project_Documents/
+/Documents/
+/Docs/
+/Notes/
+/references/
+/docs_local/
+
+# === Logs and Temp Files ===
+logs/
+*.log
+*.out
+*.swp
+*.swo
+
+# === Misc ===
+node_modules/
+venv/

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="002-create-tenant-config-table" author="intern">
+        <createTable tableName="cf_filerepo_tenant_config">
+            <column name="tenant_id" type="INT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tenant_code" type="VARCHAR(16)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="config" type="JSONB"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()"/>
+            <column name="modified_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

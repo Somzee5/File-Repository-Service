@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001-create-file-table" author="intern">
+        <createTable tableName="cf_filerepo_file">
+            <column name="id" type="VARCHAR(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tenant_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_name" type="VARCHAR(256)"/>
+            <column name="file_path" type="VARCHAR(512)"/>
+            <column name="media_type" type="VARCHAR(256)"/>
+            <column name="file_size_bytes" type="BIGINT"/>
+            <column name="tag" type="VARCHAR(64)"/>
+            <column name="metadata" type="JSONB"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()"/>
+            <column name="modified_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()"/>
+        </createTable>
+
+        <createIndex tableName="cf_filerepo_file" indexName="idx_cf_filerepo_file_tenant_id">
+            <column name="tenant_id"/>
+        </createIndex>
+        <createIndex tableName="cf_filerepo_file" indexName="idx_cf_filerepo_file_tag">
+            <column name="tag"/>
+        </createIndex>
+        <createIndex tableName="cf_filerepo_file" indexName="idx_cf_filerepo_file_created_at">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

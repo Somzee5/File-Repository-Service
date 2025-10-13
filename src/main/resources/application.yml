@@ -1,0 +1,49 @@
+server:
+  port: ${FILE_REPO_PORT:8080}
+  address: ${FILE_REPO_HOST:0.0.0.0}
+
+spring:
+  application:
+    name: file-repository-service
+
+  datasource:
+    url: jdbc:postgresql://${FILE_REPO_DB_HOST:localhost}:${FILE_REPO_DB_PORT:5432}/${FILE_REPO_DB_NAME:filerepo_db}
+    username: ${FILE_REPO_DB_USERNAME}
+    password: ${FILE_REPO_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+file-repository:
+  storage:
+    base-path: ${FILE_REPO_STORAGE_BASE:./storage}
+    temp-path: ${FILE_REPO_TEMP_BASE:./temp}
+
+logging:
+  level:
+    root: ${FILE_REPO_LOG_LEVEL:INFO}
+    file_repository_service: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
