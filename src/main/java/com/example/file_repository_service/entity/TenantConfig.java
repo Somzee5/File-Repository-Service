@@ -7,26 +7,24 @@ import org.hibernate.annotations.Type;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
-/**
- * Represents one tenant's configuration.
- * Maps to table cf_filerepo_tenant_config.
- */
+
 @Entity
 @Table(name = "cf_filerepo_tenant_config")
-@Data               // Generates getters, setters, equals, hashCode, toString
-@Builder            // Allows fluent builder pattern (TenantConfig.builder()…)
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TenantConfig {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "tenant_id")
-    private Integer tenantId;   // Primary key — unique per tenant
+    private Integer tenantId;
 
     @Column(name = "tenant_code", nullable = false, unique = true, length = 16)
     private String tenantCode;
 
-    @Type(JsonBinaryType.class)               // enables Hibernate JSONB mapping
+    @Type(JsonBinaryType.class)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> config;
 

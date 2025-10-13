@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="004-alter-tenant-id-autoincrement" author="intern">
+        <dropPrimaryKey tableName="cf_filerepo_tenant_config"/>
+
+        <modifyDataType tableName="cf_filerepo_tenant_config" columnName="tenant_id" newDataType="SERIAL"/>
+
+        <addPrimaryKey columnNames="tenant_id" constraintName="pk_cf_filerepo_tenant_config" tableName="cf_filerepo_tenant_config"/>
+    </changeSet>
+</databaseChangeLog>

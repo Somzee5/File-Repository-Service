@@ -7,4 +7,8 @@
 
     <include file="db/changelog/changes/001-create-file-table.xml"/>
     <include file="db/changelog/changes/002-create-tenant-config-table.xml"/>
+
+    <include file="db/changelog/changes/004-alter-tenant-id-autoincrement.xml"/>
+    <include file="db/changelog/changes/004-alter-tenant-id-autoincrement-fixed.xml"/>
+
 </databaseChangeLog>
