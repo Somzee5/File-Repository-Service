@@ -29,10 +29,11 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
-file-repository:
-  storage:
-    base-path: ${FILE_REPO_STORAGE_BASE:./storage}
-    temp-path: ${FILE_REPO_TEMP_BASE:./temp}
+file:
+  repository:
+    storage:
+      base-path: ${FILE_REPO_STORAGE_BASE:./storage}
+      temp-path: ${FILE_REPO_TEMP_BASE:./temp}
 
 logging:
   level:
