@@ -12,7 +12,7 @@ import com.example.file_repository_service.dto.request.TenantConfigRequest;
 import com.example.file_repository_service.exception.TenantNotFoundException;
 
 @Service
-@Transactional  // ensures DB operations occur in a transaction
+@Transactional
 public class TenantConfigService {
 
     private final TenantConfigRepository tenantRepo;
@@ -42,7 +42,8 @@ public class TenantConfigService {
 
         TenantConfig tenant = new TenantConfig();
 
-        // ensure NOT NULL and UNIQUE constraint on tenant_code is satisfied for the first insert
+
+
         String tempCode = "TMP" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         tenant.setTenantCode(tempCode);
 
@@ -58,7 +59,6 @@ public class TenantConfigService {
     }
 
 
-
     // fetch or throw
     public TenantConfig getTenantConfigOrThrow(Integer tenantId) {
         return tenantRepo.findById(tenantId)
@@ -67,11 +67,13 @@ public class TenantConfigService {
 
     // create from DTO
     public TenantConfig createTenantConfigFromRequest(TenantConfigRequest request) {
-        Map<String, Object> config = Map.of(
-                "maxFileSizeKBytes", request.getMaxFileSizeKBytes(),
-                "allowedExtensions", request.getAllowedExtensions()
-        );
-        return createTenantConfig(config);
+            Map<String, Object> config = Map.of(
+                    "maxFileSizeKBytes", request.getMaxFileSizeKBytes(),
+                    "allowedExtensions", request.getAllowedExtensions(),
+                    "forbiddenExtensions", request.getForbiddenExtensions(),
+                    "allowedMimeTypes", request.getAllowedMimeTypes(),
+                    "forbiddenMimeTypes", request.getForbiddenMimeTypes()
+            );
+            return createTenantConfig(config);
+        }
     }
-
-}

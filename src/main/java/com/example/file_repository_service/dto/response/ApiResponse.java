@@ -4,9 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Standard API response wrapper used across controllers.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
