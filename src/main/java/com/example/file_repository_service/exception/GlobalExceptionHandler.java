@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
-/**
- * Global exception handler for all REST controllers.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

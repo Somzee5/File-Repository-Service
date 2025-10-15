@@ -2,6 +2,9 @@ package com.example.file_repository_service.controller;
 
 import com.example.file_repository_service.entity.FileEntity;
 import com.example.file_repository_service.service.FileService;
+import com.example.file_repository_service.dto.request.FileSearchRequest;
+import com.example.file_repository_service.dto.response.ApiResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/tenants/{tenantId}")
@@ -48,5 +52,14 @@ public class FileController {
         response.put("file", fileData);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/files/search")
+    public ResponseEntity<ApiResponse<List<FileEntity>>> searchFiles(
+            @PathVariable("tenantId") Long tenantId,
+            @RequestBody FileSearchRequest request) {
+
+        List<FileEntity> results = fileService.searchFiles(tenantId, request);
+        return ResponseEntity.ok(ApiResponse.success("Files fetched successfully", results));
     }
 }
