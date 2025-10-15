@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/tenants")
-public class TenantConfigController {
+public class TenantConfigController
+{
 
     private final TenantConfigService tenantService;
 

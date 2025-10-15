@@ -24,10 +24,8 @@ public class StorageService {
         Files.createDirectories(tempPath);
     }
 
-    /**
-     * Saves the uploaded file to {basePath}/{tenantCode}/{yyyy_MM}/{fileId}.{ext}
-     * Returns the relative path to store in DB.
-     */
+
+
     public String saveFile(MultipartFile file, String tenantCode, String fileId) throws IOException {
         // Extract file extension safely
         String originalName = file.getOriginalFilename();
@@ -35,9 +33,9 @@ public class StorageService {
         if (originalName != null && originalName.contains(".")) {
             extension = originalName.substring(originalName.lastIndexOf('.') + 1);
         }
-
-        // Format folder: /{tenantCode}/{yyyy_MM}/
+        
         String folderName = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM"));
+
         Path tenantFolder = basePath.resolve(tenantCode).resolve(folderName);
         Files.createDirectories(tenantFolder);
 
@@ -53,9 +51,8 @@ public class StorageService {
         return relativePath.toString().replace("\\", "/");
     }
 
-    /**
-     * Deletes a file by relative path (used on rollback or delete).
-     */
+
+
     public void deleteFile(String relativePath) {
         try {
             Path fileToDelete = basePath.resolve(relativePath).normalize();

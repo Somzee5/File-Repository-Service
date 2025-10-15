@@ -11,16 +11,14 @@ import java.util.Map;
 @Component
 public class FileValidator {
 
-    /**
-     * Validates file size, extension, and MIME type using tenant's config JSON.
-     */
     public void validateFile(MultipartFile file, TenantConfig tenantConfig) {
         Map<String, Object> config = tenantConfig.getConfig();
         String tenantCode = tenantConfig.getTenantCode();
 
-        // --- 1️⃣ Validate max file size ---
+
         Integer maxFileSizeKBytes = (Integer) config.getOrDefault("maxFileSizeKBytes", 2048);
         long maxBytes = maxFileSizeKBytes * 1024L;
+
         if (file.getSize() > maxBytes) {
             throw new InvalidFileException(
                     String.format("File size %.2f MB exceeds limit of %.2f MB for tenant %s",
@@ -29,7 +27,6 @@ public class FileValidator {
                             tenantCode));
         }
 
-        // --- 2️⃣ Validate file extension ---
         String originalName = file.getOriginalFilename();
         String extension = "";
         if (originalName != null && originalName.contains(".")) {
@@ -46,7 +43,6 @@ public class FileValidator {
             throw new InvalidFileException("Extension '" + extension + "' is forbidden for tenant " + tenantCode);
         }
 
-        // --- 3️⃣ Validate MIME type ---
         String mimeType = file.getContentType();
         List<String> allowedMime = (List<String>) config.getOrDefault("allowedMimeTypes", List.of());
         List<String> forbiddenMime = (List<String>) config.getOrDefault("forbiddenMimeTypes", List.of());

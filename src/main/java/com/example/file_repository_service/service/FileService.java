@@ -30,29 +30,16 @@ public class FileService {
         this.fileValidator = fileValidator;
     }
 
-    /**
-     * Uploads a file for a specific tenant.
-     *
-     * @param tenantId    Tenant's ID from path variable
-     * @param tenantCode  Tenant's code from controller (already known)
-     * @param file        The uploaded file (multipart)
-     * @param tag         Optional tag for file categorization
-     * @return            Saved FileEntity
-     */
+
     public FileEntity uploadFile(Long tenantId, String tenantCode, MultipartFile file, String tag) throws IOException {
-        // 1️⃣ Fetch tenant config using tenantId
         TenantConfig tenantConfig = tenantConfigService.getTenantConfigOrThrow(tenantId.intValue());
 
-        // 2️⃣ Validate file using tenant’s configuration (max size, extensions, MIME, etc.)
         fileValidator.validateFile(file, tenantConfig);
 
-        // 3️⃣ Generate unique file ID (includes tenant info + timestamp + random)
         String fileId = FileIdGenerator.generate(tenantId);
 
-        // 4️⃣ Save the file to local storage (/storage/{tenantCode}/{yyyy_MM}/...)
         String relativePath = storageService.saveFile(file, tenantCode, fileId);
 
-        // 5️⃣ Build FileEntity object for database persistence
         FileEntity fileEntity = FileEntity.builder()
                 .id(fileId)
                 .tenantId(tenantId)
@@ -61,12 +48,11 @@ public class FileService {
                 .mediaType(file.getContentType())
                 .fileSizeBytes(file.getSize())
                 .tag(tag)
-                .metadata(Map.of()) // You can later pass additional metadata if needed
+                .metadata(Map.of())
                 .createdAt(OffsetDateTime.now())
                 .modifiedAt(OffsetDateTime.now())
                 .build();
 
-        // 6️⃣ Persist metadata into DB
         return fileRepository.save(fileEntity);
     }
 }

@@ -19,7 +19,7 @@ public class FileIdGenerator {
         return "CF_FR_" + tenantId + "_" + timestamp + "_" + randomPart;
     }
 
-    private FileIdGenerator() {
-        // prevent instantiation
-    }
+//    private FileIdGenerator() {
+//        // prevent instantiation
+//    }
 }
