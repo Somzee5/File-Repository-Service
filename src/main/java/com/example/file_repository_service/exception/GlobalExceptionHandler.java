@@ -48,4 +48,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.failure(ex.getMessage()));
     }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ApiResponse<String>> handleFileStorage(FileStorageException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.failure(ex.getMessage()));
+    }
+
 }

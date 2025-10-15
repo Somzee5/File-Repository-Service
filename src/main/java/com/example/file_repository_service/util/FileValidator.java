@@ -20,11 +20,7 @@ public class FileValidator {
         long maxBytes = maxFileSizeKBytes * 1024L;
 
         if (file.getSize() > maxBytes) {
-            throw new InvalidFileException(
-                    String.format("File size %.2f MB exceeds limit of %.2f MB for tenant %s",
-                            file.getSize() / 1048576.0,
-                            maxFileSizeKBytes / 1024.0,
-                            tenantCode));
+            throw new InvalidFileException("File size exceeds the limit of " + maxFileSizeKBytes + " KB");
         }
 
         String originalName = file.getOriginalFilename();

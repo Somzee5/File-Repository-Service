@@ -1,5 +1,6 @@
 package com.example.file_repository_service.service;
 
+import com.example.file_repository_service.exception.FileStorageException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -27,28 +28,32 @@ public class StorageService {
 
 
     public String saveFile(MultipartFile file, String tenantCode, String fileId) throws IOException {
-        // Extract file extension safely
-        String originalName = file.getOriginalFilename();
-        String extension = "";
-        if (originalName != null && originalName.contains(".")) {
-            extension = originalName.substring(originalName.lastIndexOf('.') + 1);
+        try {
+            String originalName = file.getOriginalFilename();
+            String extension = "";
+            if (originalName != null && originalName.contains(".")) {
+                extension = originalName.substring(originalName.lastIndexOf('.') + 1);
+            }
+
+            String folderName = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM"));
+
+            Path tenantFolder = basePath.resolve(tenantCode).resolve(folderName);
+            Files.createDirectories(tenantFolder);
+
+            // Build final file path
+            String fileName = fileId + (extension.isEmpty() ? "" : "." + extension);
+            Path targetFile = tenantFolder.resolve(fileName);
+
+            // Save file
+            file.transferTo(targetFile);
+
+            // Return relative path for DB
+            Path relativePath = basePath.relativize(targetFile);
+            return relativePath.toString().replace("\\", "/");
+        } catch (IOException e) {
+            throw new FileStorageException("Failed to save file to disk for tenant " + tenantCode, e);
         }
-        
-        String folderName = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM"));
 
-        Path tenantFolder = basePath.resolve(tenantCode).resolve(folderName);
-        Files.createDirectories(tenantFolder);
-
-        // Build final file path
-        String fileName = fileId + (extension.isEmpty() ? "" : "." + extension);
-        Path targetFile = tenantFolder.resolve(fileName);
-
-        // Save file
-        file.transferTo(targetFile);
-
-        // Return relative path for DB
-        Path relativePath = basePath.relativize(targetFile);
-        return relativePath.toString().replace("\\", "/");
     }
 
 
