@@ -11,6 +11,8 @@ import java.util.Optional;
 
 import com.example.file_repository_service.dto.request.TenantConfigRequest;
 import com.example.file_repository_service.exception.TenantNotFoundException;
+import org.apache.tika.Tika;
+
 
 @Service
 @Transactional

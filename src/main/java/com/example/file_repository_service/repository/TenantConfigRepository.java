@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface TenantConfigRepository extends JpaRepository<TenantConfig, Integer>
 {
-    Optional<TenantConfig> findByTenantCode(String tenantCode);
+//    Optional<TenantConfig> findByTenantCode(String tenantCode);
 }
