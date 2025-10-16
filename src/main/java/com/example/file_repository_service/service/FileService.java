@@ -9,6 +9,7 @@ import com.example.file_repository_service.exception.TenantNotFoundException;
 import com.example.file_repository_service.repository.FileRepository;
 import com.example.file_repository_service.util.FileIdGenerator;
 import com.example.file_repository_service.util.FileValidator;
+import com.example.file_repository_service.util.SimpleMultipartFile;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.core.io.Resource;
 import java.nio.file.*;
+import java.util.stream.Stream;
 
 
 @Service
@@ -41,16 +43,72 @@ public class FileService {
     }
 
 
-    public FileEntity uploadFile(Long tenantId, String tenantCode, MultipartFile file, String tag) throws IOException {
+    public FileEntity uploadFile(Long tenantId, String tenantCode, MultipartFile file, String tag) throws IOException
+    {
+        String originalName = file.getOriginalFilename();
+        if (originalName != null && originalName.toLowerCase().endsWith(".zip")) {
+            return uploadZipFile(tenantId, tenantCode, file, tag);
+        }
+
         TenantConfig tenantConfig = tenantConfigService.getTenantConfigOrThrow(tenantId.intValue());
 
         fileValidator.validateFile(file, tenantConfig);
 
-        String fileId = FileIdGenerator.generate(tenantId);
+        return saveFileEntity(tenantId, tenantCode, file, tag);
+    }
 
+    public FileEntity uploadZipFile(Long tenantId, String tenantCode, MultipartFile file, String tag) throws IOException
+    {
+        String zipId = FileIdGenerator.generate(tenantId);
+        Path extractedDir = null;
+
+        TenantConfig tenantConfig = tenantConfigService.getTenantConfigOrThrow(tenantId.intValue());
+
+        try {
+            extractedDir = storageService.extractZipToTemp(file, tenantCode, zipId);
+
+            try (Stream<Path> walk = Files.walk(extractedDir)) {
+                List<Path> innerFiles = walk
+                        .filter(Files::isRegularFile)
+                        .collect(Collectors.toList());
+
+                if (innerFiles.isEmpty()) {
+                    throw new InvalidFileException("ZIP archive is empty.");
+                }
+
+                for (Path innerFile : innerFiles) {
+                    // Convert to MultipartFile-like input
+                    byte[] bytes = Files.readAllBytes(innerFile);
+                    String fileName = innerFile.getFileName().toString();
+
+                    SimpleMultipartFile mockFile = new SimpleMultipartFile(
+                            fileName,
+                            fileName,
+                            Files.probeContentType(innerFile),
+                            Files.readAllBytes(innerFile)
+                    );
+
+                    fileValidator.validateFile(mockFile, tenantConfig);
+                }
+            }
+
+            return saveFileEntity(tenantId, tenantCode, file, tag);
+
+        } catch (InvalidFileException e) {
+            throw e; // propagate validation failure
+        } finally {
+            if (extractedDir != null) {
+                storageService.deleteTempFolder(extractedDir);
+            }
+        }
+    }
+
+
+    private FileEntity saveFileEntity(Long tenantId, String tenantCode, MultipartFile file, String tag) throws IOException {
+        String fileId = FileIdGenerator.generate(tenantId);
         String relativePath = storageService.saveFile(file, tenantCode, fileId);
 
-        FileEntity fileEntity = FileEntity.builder()
+        FileEntity entity = FileEntity.builder()
                 .id(fileId)
                 .tenantId(tenantId)
                 .fileName(file.getOriginalFilename())
@@ -63,8 +121,11 @@ public class FileService {
                 .modifiedAt(OffsetDateTime.now())
                 .build();
 
-        return fileRepository.save(fileEntity);
+        return fileRepository.save(entity);
     }
+
+
+
 
     public List<FileEntity> searchFiles(Long tenantId, FileSearchRequest req) {
         List<FileEntity> tenantFiles = fileRepository.findByTenantId(tenantId);

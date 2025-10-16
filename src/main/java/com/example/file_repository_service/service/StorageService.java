@@ -11,12 +11,16 @@ import org.springframework.core.io.UrlResource;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.*;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 
 import com.example.file_repository_service.config.StorageProperties;
+import java.util.stream.Stream;
+import java.util.Comparator;
 
 @Service
 public class StorageService {
@@ -41,6 +45,7 @@ public class StorageService {
         try {
             String originalName = file.getOriginalFilename();
             String extension = "";
+
             if (originalName != null && originalName.contains(".")) {
                 extension = originalName.substring(originalName.lastIndexOf('.') + 1);
             }
@@ -103,6 +108,37 @@ public class StorageService {
         }
     }
 
+
+
+    public Path extractZipToTemp(MultipartFile zipFile, String tenantCode, String zipId) throws IOException {
+        Path zipTempDir = tempPath.resolve(tenantCode).resolve(zipId);
+        Files.createDirectories(zipTempDir);
+
+        try (ZipInputStream zis = new ZipInputStream(zipFile.getInputStream())) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.isDirectory()) continue; // skip folders
+
+                Path extractedFile = zipTempDir.resolve(entry.getName()).normalize();
+                Files.createDirectories(extractedFile.getParent());
+
+                try (OutputStream os = Files.newOutputStream(extractedFile)) {
+                    zis.transferTo(os);
+                }
+            }
+        }
+        return zipTempDir;
+    }
+
+    public void deleteTempFolder(Path tempFolder) {
+        if (Files.exists(tempFolder)) {
+            try (Stream<Path> walk = Files.walk(tempFolder)) {
+                walk.sorted(Comparator.reverseOrder()).forEach(path -> {
+                    try { Files.deleteIfExists(path); } catch (IOException ignored) {}
+                });
+            } catch (IOException ignored) {}
+        }
+    }
 
 
 }
