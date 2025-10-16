@@ -1,5 +1,6 @@
 package com.example.file_repository_service.controller;
 
+import com.example.file_repository_service.dto.request.FileUpdateRequest;
 import com.example.file_repository_service.entity.FileEntity;
 import com.example.file_repository_service.service.FileService;
 import com.example.file_repository_service.dto.request.FileSearchRequest;
@@ -14,6 +15,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/v1/tenants/{tenantId}")
@@ -61,5 +65,70 @@ public class FileController {
 
         List<FileEntity> results = fileService.searchFiles(tenantId, request);
         return ResponseEntity.ok(ApiResponse.success("Files fetched successfully", results));
+    }
+
+    @PostMapping("/files/{fileId}")
+    public ResponseEntity<ApiResponse<FileEntity>> updateFileMetadata(
+            @PathVariable("tenantId") Long tenantId,
+            @PathVariable("fileId") String fileId,
+            @RequestBody FileUpdateRequest request) {
+
+        FileEntity updatedFile = fileService.updateFileMetadata(tenantId, fileId, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("File updated successfully", updatedFile)
+        );
+    }
+
+
+
+
+
+
+    @GetMapping("/files/{fileId}")
+    public ResponseEntity<ApiResponse<FileEntity>> getFileDetails(
+            @PathVariable("tenantId") Long tenantId,
+            @PathVariable("fileId") String fileId) {
+
+        FileEntity file = fileService.getFileById(tenantId, fileId);
+        return ResponseEntity.ok(ApiResponse.success("File fetched successfully", file));
+    }
+
+
+    @DeleteMapping("/files/{fileId}")
+    public ResponseEntity<ApiResponse<String>> deleteFile(
+            @PathVariable("tenantId") Long tenantId,
+            @PathVariable("fileId") String fileId) {
+
+        fileService.deleteFile(tenantId, fileId);
+        return ResponseEntity.ok(ApiResponse.success("File deleted successfully", null));
+    }
+
+
+    @GetMapping("/files")
+    public ResponseEntity<ApiResponse<List<FileEntity>>> getAllFilesByTenant(
+            @PathVariable("tenantId") Long tenantId) {
+
+        List<FileEntity> files = fileService.getAllFilesByTenant(tenantId);
+        return ResponseEntity.ok(ApiResponse.success("Files fetched successfully", files));
+    }
+
+
+    @GetMapping("/download/{fileId}")
+    public ResponseEntity<Resource> downloadFile(
+            @PathVariable("tenantId") Long tenantId,
+            @PathVariable("fileId") String fileId,
+            @RequestParam(value = "inline", defaultValue = "false") boolean inline
+    ) {
+        FileEntity fileEntity = fileService.getFileById(tenantId, fileId);
+        Resource resource = fileService.getFileAsResource(fileEntity);
+        String mimeType = fileService.getMediaType(fileEntity);
+
+        String contentDisposition = (inline ? "inline" : "attachment") + "; filename=\"" + fileEntity.getFileName() + "\"";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(mimeType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                .body(resource);
     }
 }

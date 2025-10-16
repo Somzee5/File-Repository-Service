@@ -3,10 +3,18 @@ package com.example.file_repository_service.service;
 import com.example.file_repository_service.exception.FileStorageException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.file_repository_service.exception.FileStorageException;
+import org.apache.tika.Tika;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+
+
 
 import com.example.file_repository_service.config.StorageProperties;
 
@@ -15,10 +23,12 @@ public class StorageService {
 
     private final Path basePath;
     private final Path tempPath;
+    private final Tika tika;
 
     public StorageService(StorageProperties properties) throws IOException {
         this.basePath = Paths.get(properties.getBasePath()).toAbsolutePath().normalize();
         this.tempPath = Paths.get(properties.getTempPath()).toAbsolutePath().normalize();
+        this.tika = new Tika();
 
         // Ensure base folders exist
         Files.createDirectories(basePath);
@@ -66,4 +76,33 @@ public class StorageService {
             System.err.println("Warning: failed to delete file " + relativePath + " : " + e.getMessage());
         }
     }
+
+
+    public Path resolveFilePath(String relativePath) {
+        return basePath.resolve(relativePath).normalize();
+    }
+
+    public Resource loadFileAsResource(String relativePath) {
+        try {
+            Path filePath = resolveFilePath(relativePath);
+            Resource resource = new UrlResource(filePath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new FileStorageException("File not found or not readable: " + relativePath);
+            }
+            return resource;
+        } catch (MalformedURLException e) {
+            throw new FileStorageException("Failed to load file as resource: " + relativePath, e);
+        }
+    }
+
+    public String detectMimeType(Path filePath) {
+        try {
+            return tika.detect(filePath);
+        } catch (IOException e) {
+            return "application/octet-stream";
+        }
+    }
+
+
+
 }

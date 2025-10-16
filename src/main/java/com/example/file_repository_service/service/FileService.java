@@ -1,11 +1,15 @@
 package com.example.file_repository_service.service;
 
 import com.example.file_repository_service.dto.request.FileSearchRequest;
+import com.example.file_repository_service.dto.request.FileUpdateRequest;
 import com.example.file_repository_service.entity.FileEntity;
 import com.example.file_repository_service.entity.TenantConfig;
+import com.example.file_repository_service.exception.InvalidFileException;
+import com.example.file_repository_service.exception.TenantNotFoundException;
 import com.example.file_repository_service.repository.FileRepository;
 import com.example.file_repository_service.util.FileIdGenerator;
 import com.example.file_repository_service.util.FileValidator;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +18,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.core.io.Resource;
+import java.nio.file.*;
+
 
 @Service
 public class FileService {
@@ -66,7 +73,7 @@ public class FileService {
                 .filter(file -> req.getFileName() == null ||
                         file.getFileName().toLowerCase().contains(req.getFileName().toLowerCase()))
                 .filter(file -> req.getTag() == null ||
-                        (file.getTag() != null && file.getTag().equalsIgnoreCase(req.getTag())))
+                        (file.getTag() != null && file.getTag().toLowerCase().contains(req.getTag().toLowerCase())))
                 .filter(file -> req.getMediaType() == null ||
                         (file.getMediaType() != null && file.getMediaType().equalsIgnoreCase(req.getMediaType())))
                 .filter(file -> req.getMinSizeBytes() == null || file.getFileSizeBytes() >= req.getMinSizeBytes())
@@ -82,6 +89,78 @@ public class FileService {
                             !createdAt.toLocalDate().isAfter(req.getEndDate());
                 })
                 .collect(Collectors.toList());
+    }
+
+    public FileEntity updateFileMetadata(Long tenantId, String fileId, FileUpdateRequest request) {
+
+        FileEntity fileEntity = fileRepository.findById(fileId)
+                .orElseThrow(() -> new TenantNotFoundException("File not found with ID: " + fileId));
+
+        if (!fileEntity.getTenantId().equals(tenantId)) {
+            throw new InvalidFileException("File does not belong to tenant " + tenantId);
+        }
+
+        if (request.getTag() != null) {
+            fileEntity.setTag(request.getTag());
+        }
+
+        if (request.getMetadata() != null && !request.getMetadata().isEmpty()) {
+            fileEntity.setMetadata(request.getMetadata());
+        }
+
+        fileEntity.setModifiedAt(java.time.OffsetDateTime.now());
+
+        return fileRepository.save(fileEntity);
+    }
+
+
+    // getting specific file
+    public FileEntity getFileById(Long tenantId, String fileId) {
+        FileEntity file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new InvalidFileException("File not found with ID: " + fileId));
+
+        if (!file.getTenantId().equals(tenantId)) {
+            throw new InvalidFileException("File does not belong to tenant " + tenantId);
+        }
+
+        return file;
+    }
+
+    @Transactional
+    public void deleteFile(Long tenantId, String fileId) {
+        FileEntity file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new InvalidFileException("File not found with ID: " + fileId));
+
+        if (!file.getTenantId().equals(tenantId)) {
+            throw new InvalidFileException("File does not belong to tenant " + tenantId);
+        }
+
+        // Delete physical file from disk
+        storageService.deleteFile(file.getFilePath());
+
+        // Delete metadata from DB
+        fileRepository.delete(file);
+    }
+
+
+    public List<FileEntity> getAllFilesByTenant(Long tenantId) {
+        List<FileEntity> files = fileRepository.findByTenantId(tenantId);
+
+        if (files.isEmpty()) {
+            throw new InvalidFileException("No files found for tenant ID: " + tenantId);
+        }
+
+        return files;
+    }
+
+    public Resource getFileAsResource(FileEntity fileEntity) {
+        return storageService.loadFileAsResource(fileEntity.getFilePath());
+    }
+
+    public String getMediaType(FileEntity fileEntity) {
+        Path filePath = storageService.resolveFilePath(fileEntity.getFilePath());
+        String detectedType = storageService.detectMimeType(filePath);
+        return detectedType != null ? detectedType : "application/octet-stream";
     }
 
 }

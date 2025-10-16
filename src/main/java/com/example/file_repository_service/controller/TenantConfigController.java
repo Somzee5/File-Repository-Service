@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/tenants")
 public class TenantConfigController
@@ -45,4 +47,24 @@ public class TenantConfigController
         tenantService.deleteTenant(tenantId);
         return ResponseEntity.ok(ApiResponse.success("Tenant deleted successfully", null));
     }
+
+    // POST update tenant
+    @PostMapping("/{tenantId}/config")
+    public ResponseEntity<ApiResponse<TenantConfig>> updateTenantConfig(
+            @PathVariable Integer tenantId,
+            @Valid @RequestBody TenantConfigRequest request) {
+
+        TenantConfig updated = tenantService.updateTenantConfigFromRequest(tenantId, request);
+        return ResponseEntity.ok(ApiResponse.success("Tenant config updated successfully", updated));
+    }
+
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<TenantConfig>>> getAllTenants() {
+        List<TenantConfig> tenants = tenantService.getAllTenants();
+        return ResponseEntity.ok(ApiResponse.success("All tenants fetched", tenants));
+    }
+
+
+
 }

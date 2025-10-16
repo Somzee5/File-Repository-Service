@@ -5,6 +5,7 @@ import com.example.file_repository_service.repository.TenantConfigRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -13,7 +14,8 @@ import com.example.file_repository_service.exception.TenantNotFoundException;
 
 @Service
 @Transactional
-public class TenantConfigService {
+public class TenantConfigService
+{
 
     private final TenantConfigRepository tenantRepo;
 
@@ -65,15 +67,39 @@ public class TenantConfigService {
                 .orElseThrow(() -> new TenantNotFoundException("Tenant ID " + tenantId + " not found"));
     }
 
-    // create from DTO
-    public TenantConfig createTenantConfigFromRequest(TenantConfigRequest request) {
-            Map<String, Object> config = Map.of(
-                    "maxFileSizeKBytes", request.getMaxFileSizeKBytes(),
-                    "allowedExtensions", request.getAllowedExtensions(),
-                    "forbiddenExtensions", request.getForbiddenExtensions(),
-                    "allowedMimeTypes", request.getAllowedMimeTypes(),
-                    "forbiddenMimeTypes", request.getForbiddenMimeTypes()
-            );
-            return createTenantConfig(config);
-        }
+    // GET all tenants
+    public List<TenantConfig> getAllTenants() {
+        return tenantRepo.findAll();
     }
+
+
+    // create from DTO
+    public TenantConfig createTenantConfigFromRequest(TenantConfigRequest request)
+    {
+        Map<String, Object> config = Map.of(
+                "maxFileSizeKBytes", request.getMaxFileSizeKBytes(),
+                "allowedExtensions", request.getAllowedExtensions(),
+                "forbiddenExtensions", request.getForbiddenExtensions(),
+                "allowedMimeTypes", request.getAllowedMimeTypes(),
+                "forbiddenMimeTypes", request.getForbiddenMimeTypes()
+        );
+        return createTenantConfig(config);
+    }
+
+
+    public TenantConfig updateTenantConfigFromRequest(Integer tenantId, TenantConfigRequest request) {
+        TenantConfig existing = tenantRepo.findById(tenantId)
+                .orElseThrow(() -> new TenantNotFoundException("Tenant ID " + tenantId + " not found"));
+
+        Map<String, Object> updatedConfig = Map.of(
+                "maxFileSizeKBytes", request.getMaxFileSizeKBytes(),
+                "allowedExtensions", request.getAllowedExtensions(),
+                "forbiddenExtensions", request.getForbiddenExtensions(),
+                "allowedMimeTypes", request.getAllowedMimeTypes(),
+                "forbiddenMimeTypes", request.getForbiddenMimeTypes()
+        );
+
+        existing.setConfig(updatedConfig);
+        return tenantRepo.save(existing);
+    }
+}
