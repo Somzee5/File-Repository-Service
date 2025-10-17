@@ -64,6 +64,15 @@ public class FileService {
 
         TenantConfig tenantConfig = tenantConfigService.getTenantConfigOrThrow(tenantId.intValue());
 
+        Map<String, Object> config = tenantConfig.getConfig();
+        Integer maxFileSizeKBytes = (Integer) config.get("maxFileSizeKBytes");
+        long maxBytes = maxFileSizeKBytes * 1024L;
+
+        if (file.getSize() > maxBytes) {
+            throw new InvalidFileException("ZIP file exceeds maximum allowed size of " + maxFileSizeKBytes + " KB");
+        }
+
+
         try {
             extractedDir = storageService.extractZipToTemp(file, tenantCode, zipId);
 
@@ -144,10 +153,10 @@ public class FileService {
                     if (req.getStartDate() == null || req.getEndDate() == null)
                         return true;
 
-                    OffsetDateTime createdAt = file.getCreatedAt();
+                    OffsetDateTime modifiedAt = file.getModifiedAt();
 
-                    return !createdAt.toLocalDate().isBefore(req.getStartDate()) &&
-                            !createdAt.toLocalDate().isAfter(req.getEndDate());
+                    return !modifiedAt.toLocalDate().isBefore(req.getStartDate()) &&
+                            !modifiedAt.toLocalDate().isAfter(req.getEndDate());
                 })
                 .collect(Collectors.toList());
     }

@@ -5,17 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.util.List;
 
-/**
- * Represents tenant configuration request payload.
- * Example JSON:
- * {
- *   "maxFileSizeKBytes": 2048,
- *   "allowedExtensions": [".pdf", ".jpg"],
- *   "forbiddenExtensions": [".zip"]
- * }
- */
 
-// Tenant validatoin
 
 @Data
 public class TenantConfigRequest {

@@ -64,7 +64,4 @@ public class TenantConfigController
         List<TenantConfig> tenants = tenantService.getAllTenants();
         return ResponseEntity.ok(ApiResponse.success("All tenants fetched", tenants));
     }
-
-
-
 }

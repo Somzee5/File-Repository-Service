@@ -16,10 +16,8 @@ public class FileIdGenerator {
                 .toString()
                 .replace("-", "")
                 .substring(0, 6);
+
         return "CF_FR_" + tenantId + "_" + timestamp + "_" + randomPart;
     }
 
-//    private FileIdGenerator() {
-//        // prevent instantiation
-//    }
 }

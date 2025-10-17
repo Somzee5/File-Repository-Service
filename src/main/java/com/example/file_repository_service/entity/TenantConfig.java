@@ -33,15 +33,4 @@ public class TenantConfig {
     @Column(name = "modified_at")
     private OffsetDateTime modifiedAt;
 
-    // Hooks that auto-update timestamps
-    @PrePersist
-    protected void onCreate() {
-        createdAt = OffsetDateTime.now();
-        modifiedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        modifiedAt = OffsetDateTime.now();
-    }
 }
