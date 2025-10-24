@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="003-create-embeddings-table" author="intern">
+
+        <createTable tableName="cf_filerepo_embeddings">
+            <column name="file_id" type="VARCHAR(64)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="page_id" type="INT">
+                <constraints nullable="false" />
+            </column>
+
+            <!-- OCR text extracted from Gemini -->
+            <column name="ocr" type="TEXT"/>
+
+            <!-- Vector column to store embeddings -->
+            <column name="embeddings" type="vector(1536)"/>
+
+            <!-- Optional timestamps for record tracking -->
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="NOW()"/>
+        </createTable>
+
+        <addPrimaryKey tableName="cf_filerepo_embeddings"
+                       columnNames="file_id, page_id"
+                       constraintName="pk_cf_filerepo_embeddings"/>
+
+        <addForeignKeyConstraint baseTableName="cf_filerepo_embeddings"
+                                 baseColumnNames="file_id"
+                                 referencedTableName="cf_filerepo_file"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"
+                                 constraintName="fk_embeddings_file_id"/>
+
+        <createIndex tableName="cf_filerepo_embeddings"
+                     indexName="idx_cf_filerepo_embeddings_file_id">
+            <column name="file_id"/>
+        </createIndex>
+
+    </changeSet>
+</databaseChangeLog>

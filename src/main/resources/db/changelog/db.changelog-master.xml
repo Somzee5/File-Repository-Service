@@ -11,4 +11,6 @@
     <include file="db/changelog/changes/004-alter-tenant-id-autoincrement.xml"/>
     <include file="db/changelog/changes/004-alter-tenant-id-autoincrement-fixed.xml"/>
 
+    <include file="db/changelog/changes/003-create-embeddings-table.xml"/>
+
 </databaseChangeLog>
