@@ -48,3 +48,9 @@ management:
   endpoint:
     health:
       show-details: always
+
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+

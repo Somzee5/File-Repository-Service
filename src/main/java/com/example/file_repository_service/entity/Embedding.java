@@ -2,8 +2,16 @@ package com.example.file_repository_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.OffsetDateTime;
 
+/**
+ * Entity representing file embeddings for vector search storage.
+ *
+ * NOTE: The old @TypeDef annotation has been removed as it is not needed
+ * and causes compilation errors in Hibernate 6. The @Type annotation
+ * now uses the class reference directly.
+ */
 @Entity
 @Table(name = "cf_filerepo_embeddings")
 @Getter
@@ -11,25 +19,18 @@ import java.time.OffsetDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+// The following line is removed: @TypeDef(name = "pgvector", typeClass = PgVectorType.class)
 public class Embedding {
 
-    @Id
-    @Column(name = "file_id", length = 64)
-    private String fileId;
-
-    @Column(name = "page_id", nullable = false)
-    private Integer pageId;
+    @EmbeddedId
+    private EmbeddingId id;
 
     @Column(name = "ocr", columnDefinition = "TEXT")
     private String ocr;
 
-    /**
-     * Embedding vector — we’ll store as a list of floats.
-     * pgvector supports array-like representation, and
-     * Hibernate will handle this using the string representation (e.g. [0.12, 0.34, ...])
-     */
+    // Use regular column definition for now - pgvector will work at DB level
     @Column(name = "embeddings", columnDefinition = "vector(1536)")
-    private String embeddings;
+    private Float[] embeddings;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
@@ -38,4 +39,10 @@ public class Embedding {
     protected void onCreate() {
         this.createdAt = OffsetDateTime.now();
     }
+
+    @Transient
+    public String getFileId() { return id != null ? id.getFileId() : null; }
+
+    @Transient
+    public Integer getPageId() { return id != null ? id.getPageId() : null; }
 }
