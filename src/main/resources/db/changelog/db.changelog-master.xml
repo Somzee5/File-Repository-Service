@@ -5,12 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <include file="db/changelog/changes/001-create-file-table.xml"/>
-    <include file="db/changelog/changes/002-create-tenant-config-table.xml"/>
+    <include file="classpath:db/changelog/changes/001-create-file-table.xml"/>
+    <include file="classpath:db/changelog/changes/002-create-tenant-config-table.xml"/>
 
-    <include file="db/changelog/changes/004-alter-tenant-id-autoincrement.xml"/>
-    <include file="db/changelog/changes/004-alter-tenant-id-autoincrement-fixed.xml"/>
+    <include file="classpath:db/changelog/changes/004-alter-tenant-id-autoincrement.xml"/>
+    <include file="classpath:db/changelog/changes/004-alter-tenant-id-autoincrement-fixed.xml"/>
 
-    <include file="db/changelog/changes/003-create-embeddings-table.xml"/>
+    <include file="classpath:db/changelog/changes/003-create-embeddings-table.xml"/>
 
 </databaseChangeLog>

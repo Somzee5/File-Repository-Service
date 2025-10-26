@@ -28,9 +28,9 @@ public class Embedding {
     @Column(name = "ocr", columnDefinition = "TEXT")
     private String ocr;
 
-    // Use regular column definition for now - pgvector will work at DB level
-    @Column(name = "embeddings", columnDefinition = "vector(1536)")
-    private Float[] embeddings;
+    // Store as JSON string to avoid pgvector driver issues
+    @Column(name = "embeddings", columnDefinition = "TEXT")
+    private String embeddings;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;

@@ -70,11 +70,11 @@ public class EmbeddingService {
                         vector = vector.subList(0, 1536); // 🔥 truncate extra dimensions
                     }
 
-                    Float[] vectorArray = vector.toArray(new Float[0]);
+                    String vectorString = vector.toString(); // e.g. "[0.12, 0.34, ...]"
                     Embedding embedding = Embedding.builder()
                             .id(new EmbeddingId(fileId, i))
                             .ocr(text)
-                            .embeddings(vectorArray)
+                            .embeddings(vectorString)
                             .build();
 
 
@@ -98,7 +98,19 @@ public class EmbeddingService {
             throw new InvalidFileException("File does not belong to tenant " + tenantId);
         }
 
-        return embeddingRepository.findByIdFileId(fileId);
+        // Debug: Check if embeddings exist for this fileId
+        List<Embedding> allEmbeddings = embeddingRepository.findAllEmbeddings();
+        System.out.println("DEBUG: Total embeddings in database: " + allEmbeddings.size());
+        
+        List<Embedding> embeddings = embeddingRepository.findByFileId(fileId);
+        System.out.println("DEBUG: Found " + embeddings.size() + " embeddings for fileId: " + fileId);
+        
+        // Debug: Show all fileIds in database
+        for (Embedding e : allEmbeddings) {
+            System.out.println("DEBUG: Database contains embedding for fileId: " + e.getFileId());
+        }
+        
+        return embeddings;
     }
 
     /**
@@ -113,10 +125,10 @@ public class EmbeddingService {
         }
 
         List<Float> queryVector = geminiClient.generateEmbeddings(query);
-        List<Embedding> embeddings = embeddingRepository.findByIdFileId(fileId);
+        List<Embedding> embeddings = embeddingRepository.findByFileId(fileId);
 
         return embeddings.stream().map(e -> {
-                    List<Float> storedVector = List.of(e.getEmbeddings()); // Convert Float[] → List<Float>
+                    List<Float> storedVector = parseVector(e.getEmbeddings());
                     double similarity = cosineSimilarity(storedVector, queryVector);
 
                     Map<String, Object> map = new HashMap<>();
