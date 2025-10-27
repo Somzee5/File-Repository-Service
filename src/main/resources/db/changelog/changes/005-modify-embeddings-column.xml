@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="004-alter-embedding-column-type" author="intern">
+        <comment>Change embeddings column from vector(1536) to TEXT to match updated entity model</comment>
+
+        <sql>
+            ALTER TABLE cf_filerepo_embeddings
+            ALTER COLUMN embeddings TYPE TEXT USING embeddings::text;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

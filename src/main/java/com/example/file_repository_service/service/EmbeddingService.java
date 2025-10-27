@@ -38,9 +38,6 @@ public class EmbeddingService {
         this.geminiClient = geminiClient;
     }
 
-    /**
-     * 🔹 Extracts text from PDF pages and generates embeddings per page.
-     */
     @Transactional
     public void generateEmbeddingsForFile(Long tenantId, String fileId) {
         FileEntity file = fileRepository.findById(fileId)
@@ -67,10 +64,10 @@ public class EmbeddingService {
 
                     List<Float> vector = geminiClient.generateEmbeddings(text);
                     if (vector.size() > 1536) {
-                        vector = vector.subList(0, 1536); // 🔥 truncate extra dimensions
+                        vector = vector.subList(0, 1536); // truncate extra dimensions
                     }
 
-                    String vectorString = vector.toString(); // e.g. "[0.12, 0.34, ...]"
+                    String vectorString = vector.toString();
                     Embedding embedding = Embedding.builder()
                             .id(new EmbeddingId(fileId, i))
                             .ocr(text)
@@ -87,9 +84,7 @@ public class EmbeddingService {
         }
     }
 
-    /**
-     * 🔹 Fetch all embeddings for a file.
-     */
+
     public List<Embedding> getEmbeddingsForFile(Long tenantId, String fileId) {
         FileEntity file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new InvalidFileException("File not found for ID: " + fileId));
@@ -98,24 +93,22 @@ public class EmbeddingService {
             throw new InvalidFileException("File does not belong to tenant " + tenantId);
         }
 
-        // Debug: Check if embeddings exist for this fileId
+
         List<Embedding> allEmbeddings = embeddingRepository.findAllEmbeddings();
-        System.out.println("DEBUG: Total embeddings in database: " + allEmbeddings.size());
+//        System.out.println("DEBUG: Total embeddings in database: " + allEmbeddings.size());
         
         List<Embedding> embeddings = embeddingRepository.findByFileId(fileId);
-        System.out.println("DEBUG: Found " + embeddings.size() + " embeddings for fileId: " + fileId);
+//        System.out.println("DEBUG: Found " + embeddings.size() + " embeddings for fileId: " + fileId);
         
         // Debug: Show all fileIds in database
-        for (Embedding e : allEmbeddings) {
-            System.out.println("DEBUG: Database contains embedding for fileId: " + e.getFileId());
-        }
+//        for (Embedding e : allEmbeddings) {
+//            System.out.println("DEBUG: Database contains embedding for fileId: " + e.getFileId());
+//        }
         
         return embeddings;
     }
 
-    /**
-     * 🔹 Search embeddings by cosine similarity to query text.
-     */
+
     public List<java.util.Map<String, Object>> searchInEmbeddings(Long tenantId, String fileId, String query) {
         FileEntity file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new InvalidFileException("File not found for ID: " + fileId));

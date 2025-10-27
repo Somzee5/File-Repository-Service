@@ -82,9 +82,6 @@ public class FileController {
 
 
 
-
-
-
     @GetMapping("/files/{fileId}")
     public ResponseEntity<ApiResponse<FileEntity>> getFileDetails(
             @PathVariable("tenantId") Long tenantId,

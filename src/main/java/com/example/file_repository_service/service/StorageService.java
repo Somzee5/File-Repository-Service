@@ -1,44 +1,39 @@
 package com.example.file_repository_service.service;
 
+import com.example.file_repository_service.config.StorageProperties;
 import com.example.file_repository_service.exception.FileStorageException;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import com.example.file_repository_service.exception.FileStorageException;
-import org.apache.tika.Tika;
+import com.example.file_repository_service.util.MediaTypeDetector;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.file.*;
-import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-
-import com.example.file_repository_service.config.StorageProperties;
-import java.util.stream.Stream;
-import java.util.Comparator;
 
 @Service
 public class StorageService {
 
     private final Path basePath;
     private final Path tempPath;
-    private final Tika tika;
+    private final MediaTypeDetector mediaTypeDetector;
 
-    public StorageService(StorageProperties properties) throws IOException {
+    public StorageService(StorageProperties properties, MediaTypeDetector mediaTypeDetector) throws IOException {
         this.basePath = Paths.get(properties.getBasePath()).toAbsolutePath().normalize();
         this.tempPath = Paths.get(properties.getTempPath()).toAbsolutePath().normalize();
-        this.tika = new Tika();
+        this.mediaTypeDetector = mediaTypeDetector;
 
-        // Ensure base folders exist
         Files.createDirectories(basePath);
         Files.createDirectories(tempPath);
     }
-
 
     public String saveFile(MultipartFile file, String tenantCode, String fileId) throws IOException {
         try {
@@ -50,27 +45,19 @@ public class StorageService {
             }
 
             String folderName = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy_MM"));
-
             Path tenantFolder = basePath.resolve(tenantCode).resolve(folderName);
             Files.createDirectories(tenantFolder);
 
-            // Build final file path
             String fileName = fileId + (extension.isEmpty() ? "" : "." + extension);
             Path targetFile = tenantFolder.resolve(fileName);
-
-            // Save file
             file.transferTo(targetFile);
 
-            // Return relative path for DB
             Path relativePath = basePath.relativize(targetFile);
             return relativePath.toString().replace("\\", "/");
         } catch (IOException e) {
             throw new FileStorageException("Failed to save file to disk for tenant " + tenantCode, e);
         }
-
     }
-
-
 
     public void deleteFile(String relativePath) {
         try {
@@ -80,7 +67,6 @@ public class StorageService {
             System.err.println("Warning: failed to delete file " + relativePath + " : " + e.getMessage());
         }
     }
-
 
     public Path resolveFilePath(String relativePath) {
         return basePath.resolve(relativePath).normalize();
@@ -99,15 +85,10 @@ public class StorageService {
         }
     }
 
+    // Updated to use MediaTypeDetector
     public String detectMimeType(Path filePath) {
-        try {
-            return tika.detect(filePath);
-        } catch (IOException e) {
-            return "application/octet-stream";
-        }
+        return mediaTypeDetector.detectMimeType(filePath);
     }
-
-
 
     public Path extractZipToTemp(MultipartFile zipFile, String tenantCode, String zipId) throws IOException {
         Path zipTempDir = tempPath.resolve(tenantCode).resolve(zipId);
@@ -116,7 +97,7 @@ public class StorageService {
         try (ZipInputStream zis = new ZipInputStream(zipFile.getInputStream())) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                if (entry.isDirectory()) continue; // skip folders
+                if (entry.isDirectory()) continue;
 
                 Path extractedFile = zipTempDir.resolve(entry.getName()).normalize();
                 Files.createDirectories(extractedFile.getParent());

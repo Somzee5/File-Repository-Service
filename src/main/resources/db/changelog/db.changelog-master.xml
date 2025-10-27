@@ -13,4 +13,7 @@
 
     <include file="classpath:db/changelog/changes/003-create-embeddings-table.xml"/>
 
+    <include file="classpath:db/changelog/changes/005-modify-embeddings-column.xml"/>
+
+
 </databaseChangeLog>
