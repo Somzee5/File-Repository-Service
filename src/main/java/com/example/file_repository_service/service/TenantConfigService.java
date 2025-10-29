@@ -18,7 +18,6 @@ import org.apache.tika.Tika;
 @Transactional
 public class TenantConfigService
 {
-
     private final TenantConfigRepository tenantRepo;
 
     public TenantConfigService(TenantConfigRepository tenantRepo) { this.tenantRepo = tenantRepo;}

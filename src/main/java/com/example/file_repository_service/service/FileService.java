@@ -14,6 +14,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -24,6 +26,8 @@ import java.nio.file.*;
 import java.util.stream.Stream;
 
 
+
+@Log4j2
 @Service
 public class FileService {
 
@@ -45,16 +49,22 @@ public class FileService {
 
     public FileEntity uploadFile(Long tenantId, String tenantCode, MultipartFile file, String tag) throws IOException
     {
-        String originalName = file.getOriginalFilename();
-        if (originalName != null && originalName.toLowerCase().endsWith(".zip")) {
-            return uploadZipFile(tenantId, tenantCode, file, tag);
+        try {
+            String originalName = file.getOriginalFilename();
+            if (originalName != null && originalName.toLowerCase().endsWith(".zip")) {
+                return uploadZipFile(tenantId, tenantCode, file, tag);
+            }
+
+            TenantConfig tenantConfig = tenantConfigService.getTenantConfigOrThrow(tenantId.intValue());
+            fileValidator.validateFile(file, tenantConfig);
+
+            log.info("Uploading file for tenant {}", tenantId);
+
+            return saveFileEntity(tenantId, tenantCode, file, tag);
+        } catch (Exception e) {
+            log.error("Error while uploading file for tenant {}", tenantId, e);
+            throw e; // rethrow so caller sees real cause
         }
-
-        TenantConfig tenantConfig = tenantConfigService.getTenantConfigOrThrow(tenantId.intValue());
-
-        fileValidator.validateFile(file, tenantConfig);
-
-        return saveFileEntity(tenantId, tenantCode, file, tag);
     }
 
     public FileEntity uploadZipFile(Long tenantId, String tenantCode, MultipartFile file, String tag) throws IOException

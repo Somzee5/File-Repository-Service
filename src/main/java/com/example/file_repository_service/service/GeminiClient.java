@@ -10,14 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Gemini client for embeddings (REST).
- * Uses: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent
- * Header: x-goog-api-key: <API_KEY>
- *
- * Based on Gemini docs/examples for embedContent (embedContent endpoint and/or batchEmbedContents).
- * See: Gemini Embeddings docs. :contentReference[oaicite:2]{index=2}
- */
+
 @Component
 public class GeminiClient {
 

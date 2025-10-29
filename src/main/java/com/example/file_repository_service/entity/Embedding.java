@@ -5,13 +5,7 @@ import lombok.*;
 
 import java.time.OffsetDateTime;
 
-/**
- * Entity representing file embeddings for vector search storage.
- *
- * NOTE: The old @TypeDef annotation has been removed as it is not needed
- * and causes compilation errors in Hibernate 6. The @Type annotation
- * now uses the class reference directly.
- */
+
 @Entity
 @Table(name = "cf_filerepo_embeddings")
 @Getter

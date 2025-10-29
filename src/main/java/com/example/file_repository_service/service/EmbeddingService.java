@@ -6,6 +6,7 @@ import com.example.file_repository_service.entity.FileEntity;
 import com.example.file_repository_service.exception.InvalidFileException;
 import com.example.file_repository_service.repository.EmbeddingRepository;
 import com.example.file_repository_service.repository.FileRepository;
+import com.example.file_repository_service.util.MediaTypeDetector;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,9 @@ import java.util.stream.Collectors;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
+
 
 @Service
 public class EmbeddingService {
@@ -27,15 +30,18 @@ public class EmbeddingService {
     private final EmbeddingRepository embeddingRepository;
     private final StorageService storageService;
     private final GeminiClient geminiClient;
+    private final MediaTypeDetector mediaTypeDetector;
 
     public EmbeddingService(FileRepository fileRepository,
                             EmbeddingRepository embeddingRepository,
                             StorageService storageService,
-                            GeminiClient geminiClient) {
+                            GeminiClient geminiClient,
+                            MediaTypeDetector mediaTypeDetector) {
         this.fileRepository = fileRepository;
         this.embeddingRepository = embeddingRepository;
         this.storageService = storageService;
         this.geminiClient = geminiClient;
+        this.mediaTypeDetector = mediaTypeDetector;
     }
 
     @Transactional
@@ -49,6 +55,12 @@ public class EmbeddingService {
 
         try {
             Path path = storageService.resolveFilePath(file.getFilePath());
+
+            String mimeType = mediaTypeDetector.detectMimeType(path);
+            if (!"application/pdf".equalsIgnoreCase(mimeType)) {
+                throw new InvalidFileException("File type not supported for embeddings (only PDF files are allowed).");
+            }
+
             File pdfFile = path.toFile();
 
             try (PDDocument document = PDDocument.load(pdfFile)) {
@@ -73,7 +85,6 @@ public class EmbeddingService {
                             .ocr(text)
                             .embeddings(vectorString)
                             .build();
-
 
                     embeddingRepository.save(embedding);
                 }
@@ -109,7 +120,7 @@ public class EmbeddingService {
     }
 
 
-    public List<java.util.Map<String, Object>> searchInEmbeddings(Long tenantId, String fileId, String query) {
+    public List<Map<String, Object>> searchInEmbeddings(Long tenantId, String fileId, String query) {
         FileEntity file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new InvalidFileException("File not found for ID: " + fileId));
 
@@ -138,7 +149,7 @@ public class EmbeddingService {
     private List<Float> parseVector(String vectorString) {
         vectorString = vectorString.replace("[", "").replace("]", "").trim();
         String[] parts = vectorString.split(",");
-        java.util.ArrayList<Float> list = new java.util.ArrayList<>();
+        ArrayList<Float> list = new ArrayList<>();
         for (String p : parts) {
             try {
                 list.add(Float.parseFloat(p.trim()));
