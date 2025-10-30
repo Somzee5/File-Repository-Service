@@ -10,6 +10,7 @@ import com.example.file_repository_service.util.MediaTypeDetector;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 
+@Log4j2
 @Service
 public class EmbeddingService {
 
@@ -46,6 +48,7 @@ public class EmbeddingService {
 
     @Transactional
     public void generateEmbeddingsForFile(Long tenantId, String fileId) {
+        log.info("Generate embeddings - tenantId={}, fileId={}", tenantId, fileId);
         FileEntity file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new InvalidFileException("File not found for ID: " + fileId));
 
@@ -55,6 +58,7 @@ public class EmbeddingService {
 
         try {
             Path path = storageService.resolveFilePath(file.getFilePath());
+            log.debug("Resolved file path for embeddings - {}", path);
 
             String mimeType = mediaTypeDetector.detectMimeType(path);
             if (!"application/pdf".equalsIgnoreCase(mimeType)) {
@@ -66,6 +70,7 @@ public class EmbeddingService {
             try (PDDocument document = PDDocument.load(pdfFile)) {
                 PDFTextStripper stripper = new PDFTextStripper();
                 int totalPages = document.getNumberOfPages();
+                log.info("PDF loaded - pages={} for fileId={}", totalPages, fileId);
 
                 for (int i = 1; i <= totalPages; i++) {
                     stripper.setStartPage(i);
@@ -87,10 +92,12 @@ public class EmbeddingService {
                             .build();
 
                     embeddingRepository.save(embedding);
+                    log.debug("Saved embedding - fileId={}, page={}", fileId, i);
                 }
             }
 
         } catch (Exception e) {
+            log.error("Error while generating embeddings - tenantId={}, fileId={}, error={}", tenantId, fileId, e.getMessage(), e);
             throw new RuntimeException("Error while generating embeddings: " + e.getMessage(), e);
         }
     }
@@ -106,9 +113,11 @@ public class EmbeddingService {
 
 
         List<Embedding> allEmbeddings = embeddingRepository.findAllEmbeddings();
+        log.debug("Total embeddings in DB: {}", allEmbeddings.size());
 //        System.out.println("DEBUG: Total embeddings in database: " + allEmbeddings.size());
         
         List<Embedding> embeddings = embeddingRepository.findByFileId(fileId);
+        log.info("Found {} embeddings for fileId={}", embeddings.size(), fileId);
 //        System.out.println("DEBUG: Found " + embeddings.size() + " embeddings for fileId: " + fileId);
         
         // Debug: Show all fileIds in database
@@ -121,6 +130,7 @@ public class EmbeddingService {
 
 
     public List<Map<String, Object>> searchInEmbeddings(Long tenantId, String fileId, String query) {
+        log.info("Search embeddings - tenantId={}, fileId={}, query='{}'", tenantId, fileId, query);
         FileEntity file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new InvalidFileException("File not found for ID: " + fileId));
 

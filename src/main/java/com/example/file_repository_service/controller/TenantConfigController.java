@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @RestController
 @RequestMapping("/v1/tenants")
 public class TenantConfigController
@@ -25,7 +27,8 @@ public class TenantConfigController
     @PostMapping("/config")
     public ResponseEntity<ApiResponse<TenantConfig>> createTenantConfig(
             @Valid @RequestBody TenantConfigRequest request) {
-
+        log.info("Create tenant config request - allowedExtensions={}, maxFileSizeKBytes={}",
+                request.getAllowedExtensions(), request.getMaxFileSizeKBytes());
         TenantConfig saved = tenantService.createTenantConfigFromRequest(request);
 
         return ResponseEntity.ok(ApiResponse.success(
@@ -36,7 +39,7 @@ public class TenantConfigController
     @GetMapping("/{tenantId}/config")
     public ResponseEntity<ApiResponse<TenantConfig>> getTenantConfig(
             @PathVariable Integer tenantId) {
-
+        log.info("Get tenant config - tenantId={}", tenantId);
         TenantConfig tenant = tenantService.getTenantConfigOrThrow(tenantId);
         return ResponseEntity.ok(ApiResponse.success("Tenant fetched", tenant));
     }
@@ -44,6 +47,7 @@ public class TenantConfigController
     // DELETE /v1/tenants/{tenantId}
     @DeleteMapping("/{tenantId}")
     public ResponseEntity<ApiResponse<String>> deleteTenant(@PathVariable Integer tenantId) {
+        log.info("Delete tenant - tenantId={}", tenantId);
         tenantService.deleteTenant(tenantId);
         return ResponseEntity.ok(ApiResponse.success("Tenant deleted successfully", null));
     }
@@ -53,7 +57,7 @@ public class TenantConfigController
     public ResponseEntity<ApiResponse<TenantConfig>> updateTenantConfig(
             @PathVariable Integer tenantId,
             @Valid @RequestBody TenantConfigRequest request) {
-
+        log.info("Update tenant config - tenantId={}", tenantId);
         TenantConfig updated = tenantService.updateTenantConfigFromRequest(tenantId, request);
         return ResponseEntity.ok(ApiResponse.success("Tenant config updated successfully", updated));
     }
@@ -61,6 +65,7 @@ public class TenantConfigController
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<TenantConfig>>> getAllTenants() {
+        log.info("Get all tenants request");
         List<TenantConfig> tenants = tenantService.getAllTenants();
         return ResponseEntity.ok(ApiResponse.success("All tenants fetched", tenants));
     }

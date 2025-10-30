@@ -36,6 +36,7 @@ public class FileService {
     private final TenantConfigService tenantConfigService;
     private final FileValidator fileValidator;
 
+
     public FileService(FileRepository fileRepository,
                        StorageService storageService,
                        TenantConfigService tenantConfigService,
@@ -63,7 +64,7 @@ public class FileService {
             return saveFileEntity(tenantId, tenantCode, file, tag);
         } catch (Exception e) {
             log.error("Error while uploading file for tenant {}", tenantId, e);
-            throw e; // rethrow so caller sees real cause
+            throw e;
         }
     }
 

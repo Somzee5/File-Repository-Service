@@ -7,6 +7,7 @@ import com.example.file_repository_service.dto.request.FileSearchRequest;
 import com.example.file_repository_service.dto.response.ApiResponse;
 
 import org.springframework.http.HttpStatus;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+@Log4j2
 @RestController
 @RequestMapping("/v1/tenants/{tenantId}")
 public class FileController {
@@ -36,9 +38,10 @@ public class FileController {
             @RequestParam(value = "tag", required = false) String tag
     ) throws IOException {
 
+        log.info("Upload request received - tenantId={}, fileName={}, tag={}", tenantId, file.getOriginalFilename(), tag);
         String tenantCode = "TENANT_" + tenantId;  // temporary
-
         FileEntity savedFile = fileService.uploadFile(tenantId, tenantCode, file, tag);
+        log.info("File uploaded successfully - fileId={}, tenantId={}", savedFile.getId(), tenantId);
 
 
         Map<String, Object> response = new HashMap<>();

@@ -6,11 +6,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
+@Log4j2
 @Component
 public class GeminiClient {
 
@@ -34,6 +36,7 @@ public class GeminiClient {
      */
     public List<Float> generateEmbeddings(String text) {
         try {
+            log.info("Generating embeddings from Gemini API for text length={}", text != null ? text.length() : 0);
             // Build request JSON:
             // { "model": "models/gemini-embedding-001",
             //   "content": { "parts":[ { "text": "<text>" } ] } }
@@ -62,6 +65,7 @@ public class GeminiClient {
             );
 
             if (!response.getStatusCode().is2xxSuccessful()) {
+                log.error("Gemini API returned non-2xx: status={} body={}", response.getStatusCode(), response.getBody());
                 throw new RuntimeException("Gemini API returned: " + response.getStatusCode() +
                         " body: " + response.getBody());
             }
@@ -101,9 +105,11 @@ public class GeminiClient {
                 return vector;
             }
 
+            log.error("Unexpected Gemini response: {}", response.getBody());
             throw new RuntimeException("Unexpected Gemini response: " + response.getBody());
 
         } catch (Exception e) {
+            log.error("Embedding generation failed: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to generate embeddings: " + e.getMessage(), e);
         }
     }

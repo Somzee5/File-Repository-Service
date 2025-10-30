@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @RestController
 @RequestMapping("/v1/tenants/{tenantId}")
 public class EmbeddingController {
@@ -31,6 +33,7 @@ public class EmbeddingController {
             @PathVariable Long tenantId,
             @PathVariable String fileId
     ) {
+        log.info("Generate embeddings request - tenantId={}, fileId={}", tenantId, fileId);
         embeddingService.generateEmbeddingsForFile(tenantId, fileId);
         return ResponseEntity.ok(ApiResponse.success("Embeddings generated and stored successfully", null));
     }
@@ -41,6 +44,7 @@ public class EmbeddingController {
             @PathVariable Long tenantId,
             @PathVariable String fileId
     ) {
+        log.info("Fetch embeddings request - tenantId={}, fileId={}", tenantId, fileId);
         List<Embedding> embeddings = embeddingService.getEmbeddingsForFile(tenantId, fileId);
         return ResponseEntity.ok(ApiResponse.success("Embeddings fetched successfully", embeddings));
     }
@@ -51,7 +55,7 @@ public class EmbeddingController {
             @PathVariable Long tenantId,
             @PathVariable String fileId,
             @RequestBody EmbeddingSearchRequest request) {
-
+        log.info("Search embeddings - tenantId={}, fileId={}, query='{}'", tenantId, fileId, request.getQuery());
         List<Map<String, Object>> results =
                 embeddingService.searchInEmbeddings(tenantId, fileId, request.getQuery());
 
