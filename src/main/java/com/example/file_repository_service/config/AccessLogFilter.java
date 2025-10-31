@@ -36,6 +36,9 @@ public class AccessLogFilter extends OncePerRequestFilter {
         }
     }
 
+
+    
+
     private String extractTenantId(String uri) {
         try {
             String[] parts = uri.split("/");
