@@ -2,7 +2,7 @@
 
 Modern, multi-tenant file storage and search service built with Spring Boot 3, PostgreSQL, and Liquibase. Files are stored on the local filesystem, metadata in Postgres. Includes tenant configs, file upload/download/search, and text-embedding utilities for semantic search.
 
-<p align="
+
 
 ## ✨ Features
 - Multi-tenant storage under `./storage/{tenantCode}/{yyyy_MM}/`
